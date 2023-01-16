@@ -23,8 +23,6 @@ enum IntoColorError {
     IntConversion,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
 // You need to create an implementation for a tuple of three integers,
@@ -38,6 +36,21 @@ enum IntoColorError {
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = IntoColorError;
     fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        if tuple.0 < 0
+            || tuple.0 > 255
+            || tuple.1 < 0
+            || tuple.1 > 255
+            || tuple.2 < 0
+            || tuple.2 > 255
+        {
+            Err(IntoColorError::IntConversion)
+        } else {
+            Ok(Color {
+                red: tuple.0 as u8,
+                green: tuple.1 as u8,
+                blue: tuple.2 as u8,
+            })
+        }
     }
 }
 
@@ -45,6 +58,28 @@ impl TryFrom<(i16, i16, i16)> for Color {
 impl TryFrom<[i16; 3]> for Color {
     type Error = IntoColorError;
     fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        // let color: Vec<u8> = arr
+        //     .iter()
+        //     .filter_map(|x| u8::try_from(*x).ok())
+        //     // .map(|x| u8::try_from(*x))
+        //     // .filter(|x| x.is_ok())
+        //     // .map(|x| x.unwrap())
+        //     .collect();
+
+        // if color.len() != arr.len() {
+        //     Err(IntoColorError::IntConversion)
+        // } else {
+        //     Ok(Color {
+        //         red: color[0],
+        //         green: color[1],
+        //         blue: color[2],
+        //     })
+        // }
+
+        match arr.map(|x| u8::try_from(x)) {
+            [Ok(red), Ok(green), Ok(blue)] => Ok(Color { red, green, blue }),
+            _ => Err(IntoColorError::IntConversion),
+        }
     }
 }
 
@@ -52,6 +87,37 @@ impl TryFrom<[i16; 3]> for Color {
 impl TryFrom<&[i16]> for Color {
     type Error = IntoColorError;
     fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        // let color: Vec<u8> = slice
+        //     .iter()
+        //     .filter_map(|x| u8::try_from(*x).ok())
+        //     // .map(|x| u8::try_from(*x))
+        //     // .filter(|x| x.is_ok())
+        //     // .map(|x| x.unwrap())
+        //     .collect();
+
+        // if slice.len() != 3 {
+        //     Err(IntoColorError::BadLen)
+        // } else if color.len() != slice.len() {
+        //     Err(IntoColorError::IntConversion)
+        // } else {
+        //     Ok(Color {
+        //         red: color[0],
+        //         green: color[1],
+        //         blue: color[2],
+        //     })
+        // }
+
+        let result: Vec<Result<u8, _>> = slice.iter().map(|&x| u8::try_from(x)).collect();
+
+        match result.as_slice() {
+            [Ok(red), Ok(green), Ok(blue)] => Ok(Color {
+                red: *red,
+                green: *green,
+                blue: *blue,
+            }),
+            x if x.len() != 3 => Err(IntoColorError::BadLen),
+            _ => Err(IntoColorError::IntConversion),
+        }
     }
 }
 
